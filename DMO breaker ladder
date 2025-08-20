@@ -1,0 +1,142 @@
+-- Services
+local Players      = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+-- Player References
+local player    = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp       = character:WaitForChild("HumanoidRootPart")
+
+--loading ui
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+
+local Window = Library.CreateLib("Dolce Milk Obby Breaking Ladder", "DarkTheme")
+
+--loading tabs
+
+local MainTab = Window:NewTab("Main") --1
+
+local PlayerTab = Window:NewTab("Player") --2
+
+local MiscTab = Window:NewTab("Misc") --3
+
+local OtherTab = Window:NewTab("Other") --4
+
+local CreditsTab = Window:NewTab("Credits") --5
+
+--loading section 1
+
+local speed   = 53               -- studs per second
+local running = false            -- loop flag
+
+local waypoints = {
+    Vector3.new(88,  1,  -246),  -- teleport here instantly
+    Vector3.new(87,  4,  -252),
+    Vector3.new(90,  8,  -257),
+    Vector3.new(96, 13,  -262),
+    Vector3.new(103,17,  -264),
+    Vector3.new(111,22,  -264),
+    Vector3.new(117,26,  -262),
+    Vector3.new(121,30,  -258),
+    Vector3.new(126,34,  -251),
+    Vector3.new(127,39,  -242),
+    Vector3.new(123,45,  -236),
+    Vector3.new(117,50,  -228),
+    Vector3.new(110,54,  -227),
+    Vector3.new(104,58,  -227),
+    Vector3.new(95, 62,  -229),
+    Vector3.new(89, 69,  -238),
+    Vector3.new(87, 72,  -244),
+    Vector3.new(87, 76,  -249)
+}
+
+local function runPath()
+    -- instant teleport to starting point
+    hrp.CFrame = CFrame.new(waypoints[1])
+
+    while running do
+        for i = 2, #waypoints do
+            if not running then
+                return
+            end
+
+            local target = waypoints[i]
+            local dist   = (hrp.Position - target).Magnitude
+            local time   = dist / speed
+
+            local tween = TweenService:Create(
+                hrp,
+                TweenInfo.new(time, Enum.EasingStyle.Linear),
+                { CFrame = CFrame.new(target) }
+            )
+
+            tween:Play()
+            tween.Completed:Wait()
+        end
+    end
+end
+
+local LB1Section = MainTab:NewSection("Ladder Breaker From Below 1")
+LB1Section:NewToggle("Enabled", "", function(state)
+running = state
+        if state then
+            spawn(runPath)
+        end
+    end
+)
+
+--section 2
+
+local LB2Section = MainTab:NewSection("Ladder Breaker From Above 2")
+
+local speed   = 53               -- studs per second
+local running = false            -- loop flag
+
+local waypoints = {
+    Vector3.new(87, 75,  -249),
+    Vector3.new(89, 82, -257),
+    Vector3.new(102, 89, -266),
+    Vector3.new(116, 97, -263),
+    Vector3.new(124, 101, -256),
+    Vector3.new(126, 110, -244),
+    Vector3.new(123, 116, -233),
+    Vector3.new(113, 124, -227),
+    Vector3.new(104, 128, -227),
+    Vector3.new(94, 135, -232),
+    Vector3.new(87, 144, -242)
+}
+
+local function runPath()
+    -- instant teleport to starting point
+    hrp.CFrame = CFrame.new(waypoints[1])
+
+    while running do
+        for i = 2, #waypoints do
+            if not running then
+                return
+            end
+
+            local target = waypoints[i]
+            local dist   = (hrp.Position - target).Magnitude
+            local time   = dist / speed
+
+            local tween = TweenService:Create(
+                hrp,
+                TweenInfo.new(time, Enum.EasingStyle.Linear),
+                { CFrame = CFrame.new(target) }
+            )
+
+            tween:Play()
+            tween.Completed:Wait()
+        end
+    end
+end
+
+LB2Section:NewToggle("Enabled", "", function(state)
+running = state
+        if state then
+            spawn(runPath)
+        end
+    end
+)
