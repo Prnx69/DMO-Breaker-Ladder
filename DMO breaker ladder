@@ -11,7 +11,7 @@ local hrp       = character:WaitForChild("HumanoidRootPart")
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 
-local Window = Library.CreateLib("Dolce Milk Obby Breaking Ladder", "DarkTheme")
+local Window = Library.CreateLib("Breaker Ladder - DMO", "DarkTheme")
 
 --loading tabs
 
@@ -19,11 +19,11 @@ local MainTab = Window:NewTab("Main") --1
 
 local PlayerTab = Window:NewTab("Player") --2
 
-local MiscTab = Window:NewTab("Misc") --3
+local MiscTab = Window:NewTab("Teleports") --3
 
-local OtherTab = Window:NewTab("Other") --4
+local OtherTab = Window:NewTab("Misc") --4
 
-local CreditsTab = Window:NewTab("Credits") --5
+local CreditsTab = Window:NewTab("Settings UI & Credits") --5
 
 --loading section 1
 
@@ -78,7 +78,7 @@ local function runPath()
 end
 
 local LB1Section = MainTab:NewSection("Ladder Breaker From Below 1")
-LB1Section:NewToggle("Enabled", "", function(state)
+LB1Section:NewToggle("Enabled", "Breaking the lower/upper ladder", function(state)
 running = state
         if state then
             spawn(runPath)
@@ -108,7 +108,6 @@ local waypoints = {
 }
 
 local function runPath()
-    -- instant teleport to starting point
     hrp.CFrame = CFrame.new(waypoints[1])
 
     while running do
@@ -133,10 +132,112 @@ local function runPath()
     end
 end
 
-LB2Section:NewToggle("Enabled", "", function(state)
+LB2Section:NewToggle("Enabled", "Breaking the lower/upper ladder", function(state)
 running = state
         if state then
             spawn(runPath)
         end
     end
 )
+
+local LB3Section = MainTab:NewSection("Pass The Obby")
+
+LB3Section:NewButton("Pass", "Pass All Obby", function()
+    local speed = 60
+
+local waypoints = {
+    Vector3.new(87, 2, -26),
+    Vector3.new(84, 2, -239),
+    Vector3.new(87, 148, -253),
+    Vector3.new(87, 155, -266),
+    Vector3.new(78, 155, -387),
+    Vector3.new(76, 96, -392),
+    Vector3.new(78, 155, -387),
+    Vector3.new(71, 155, -467),
+    Vector3.new(71, 96, -470),
+    Vector3.new(69, 104, -485),
+    Vector3.new(66, 96, -513),
+    Vector3.new(64, 96, -539),
+    Vector3.new(69, 96, -544),
+    Vector3.new(68, 96, -561),
+    Vector3.new(61, 96, -565),
+    Vector3.new(59, 96, -595),
+    Vector3.new(59, 121, -595),
+    Vector3.new(55, 105, -634),
+    Vector3.new(31, 105, -720),
+    Vector3.new(27, 105, -764),
+    Vector3.new(41, 105, -780),
+    Vector3.new(33, 105, -873),
+    Vector3.new(39, 121, -905),
+    Vector3.new(33, 121, -967),
+    Vector3.new(30, 132, -1012),
+    Vector3.new(25, 137, -1069),
+    Vector3.new(25, 224, -1069),
+    Vector3.new(8, 213, -1121),
+    Vector3.new(8, 241, -1121),
+    Vector3.new(3, 188, -1194),
+    Vector3.new(3, 193, -1215),
+    Vector3.new(0, 189, -1238),
+    Vector3.new(-1, 195, -1268),
+    Vector3.new(-4, 190, -1294),
+    Vector3.new(-4, 215, -1294),
+    Vector3.new(-13, 215, -1387),
+    Vector3.new(-14, 190, -1403),
+    Vector3.new(-15, 190, -1422),
+    Vector3.new(-21, 190, -1424),
+    Vector3.new(-23, 190, -1441),
+    Vector3.new(-18, 191, -1446),
+    Vector3.new(-20, 191, -1474),
+    Vector3.new(-26, 223, -1530),
+    Vector3.new(-26, 192, -1532),
+    Vector3.new(-33, 335, -1549),
+    Vector3.new(-32, 342, -1544),
+    Vector3.new(-55, 342, -1676),
+    Vector3.new(-59, 283, -1671),
+    Vector3.new(-82, 283, -1813),
+    Vector3.new(-94, 283, -1910),
+    Vector3.new(-96, 347, -1930),
+    Vector3.new(-100, 347, -1954),
+    Vector3.new(-109, 299, -2043),
+    Vector3.new(-112, 265, -2086),
+    Vector3.new(-112, 291, -2086),
+    Vector3.new(-121, 291, -2142),
+    Vector3.new(-121, 265, -2143),
+    Vector3.new(-121, 291, -2142),
+    Vector3.new(-136, 291, -2235),
+    Vector3.new(-138, 265, -2247),
+    Vector3.new(-180, 266, -2364),
+    Vector3.new(-191, 266, -2426),
+    Vector3.new(-180, 265, -2440),
+    Vector3.new(-183, 265, -2453),
+    Vector3.new(-167, 264, -2457),
+    Vector3.new(-170, 265, -2473),
+    Vector3.new(-186, 265, -2471),
+    Vector3.new(-193, 265, -2519),
+    Vector3.new(-211, 265, -2672),
+    Vector3.new(-207, 265, -2693),
+    Vector3.new(-215, 265, -2737),
+    Vector3.new(-236, 266, -2787),
+}
+
+local function tweenTo(position)
+    local startPos = hrp.Position
+    local distance = (startPos - position).Magnitude
+    local duration = distance / speed
+
+    local tween = TweenService:Create(
+        hrp,
+        TweenInfo.new(duration, Enum.EasingStyle.Linear),
+        { CFrame = CFrame.new(position) }
+    )
+
+    tween:Play()
+    tween.Completed:Wait()
+end
+
+spawn(function()
+    for _, targetPos in ipairs(waypoints) do
+        tweenTo(targetPos)
+    end
+end)
+end)
