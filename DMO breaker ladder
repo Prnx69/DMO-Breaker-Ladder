@@ -1,15 +1,26 @@
 -- Services
+print("Loading Services...")
+
 local Players      = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local Workspace    = game:GetService("Workspace")
 local RunService   = game:GetService("RunService")
+local UserInput   = game:GetService("UserInputService")
 -- Player References
+
+print("Loading Player References...")
 local player    = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp       = character:WaitForChild("HumanoidRootPart")
 local function update_walk_speed(ws) plr.Character.Humanoid.WalkSpeed = ws end
 
+task.wait(1)
+
 --loading ui
+
+print("Loading Ui...")
+
+task.wait(2)
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 
@@ -17,15 +28,21 @@ local Window = Library.CreateLib("Ladder Destroyer - DMO", "DarkTheme")
 
 --loading tabs
 
+print("Starting Ui...")
+
+task.wait(1.5)
+
 local MainTab = Window:NewTab("Main") --1
 
 local PlayerTab = Window:NewTab("Player") --2
 
 local TeleportsTab = Window:NewTab("Teleports") --3
 
-local MiscTab = Window:NewTab("Misc") --4
+local ScriptsTab = Window:NewTab("Scripts") --4
 
-local CreditsTab = Window:NewTab("Credits") --5
+local SettingsTab = Window:NewTab("Settings") --5
+
+local CreditsTab = Window:NewTab("Credits") --6
 
 --main
 
@@ -79,8 +96,8 @@ local function runPath()
     end
 end
 
-local LB1Section = MainTab:NewSection("Ladder Breaker From Below")
-LB1Section:NewToggle("Enable/Disable", "Breaking the lower/upper ladder", function(state)
+local LB1Section = MainTab:NewSection("Ladder Breaker From Below 1")
+LB1Section:NewToggle("Enabled", "Breaking the lower/upper ladder", function(state)
 running = state
         if state then
             spawn(runPath)
@@ -88,29 +105,26 @@ running = state
     end
 )
 
---section 2
-
-local LB2Section = MainTab:NewSection("Ladder Breaker From Above")
+local LB2Section = MainTab:NewSection("Ladder Breaker From Above 2")
 
 local speed   = 53               -- studs per second
 local running = false            -- loop flag
 
 local waypoints = {
-    Vector3.new(87, 75,  -249),
-    Vector3.new(89, 82, -257),
-    Vector3.new(102, 89, -266),
-    Vector3.new(116, 97, -263),
-    Vector3.new(124, 101, -256),
-    Vector3.new(126, 110, -244),
-    Vector3.new(123, 116, -233),
-    Vector3.new(113, 124, -227),
-    Vector3.new(104, 128, -227),
+    Vector3.new(87, 144, -242),
     Vector3.new(94, 135, -232),
-    Vector3.new(87, 144, -242)
+    Vector3.new(104, 128, -227),
+    Vector3.new(113, 124, -227),
+    Vector3.new(123, 116, -233),
+    Vector3.new(126, 110, -244),
+    Vector3.new(124, 101, -256),
+    Vector3.new(116, 97,  -263),
+    Vector3.new(102, 89,  -266),
+    Vector3.new(89,  82,  -257),
+    Vector3.new(87, 144, -242),
 }
 
 local function runPath()
-    -- instant teleport to starting point
     hrp.CFrame = CFrame.new(waypoints[1])
 
     while running do
@@ -135,13 +149,82 @@ local function runPath()
     end
 end
 
-LB2Section:NewToggle("Enable/Disable", "Breaking the lower/upper ladder", function(state)
+LB2Section:NewToggle("Enabled", "Breaking the lower/upper ladder", function(state)
 running = state
         if state then
             spawn(runPath)
         end
     end
 )
+
+local LB5Section = MainTab:NewSection("Create Anti-Fall Platform")
+
+LB5Section:NewButton("Create", "Create Anti-Fall Platform", function()
+    
+    local platform = Instance.new("Part")
+platform.Name         = "KillZone"
+platform.Size         = Vector3.new(10000, 5, 10000)
+platform.CFrame       = CFrame.new(0, -20, 0)
+platform.Anchored     = true
+platform.CanCollide   = true
+platform.Transparency = 1
+platform.Parent       = Workspace
+
+local lastCheckpoint = {}     
+local debounce        = {}     
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(char)
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        lastCheckpoint[player] = hrp.CFrame
+    end)
+end)
+
+
+local cpsFolder = Workspace:FindFirstChild("Checkpoints")
+if cpsFolder then
+    for _, cp in ipairs(cpsFolder:GetChildren()) do
+        if cp:IsA("BasePart") then
+            cp.Touched:Connect(function(hit)
+                local char = hit:FindFirstAncestorOfClass("Model")
+                local pl   = char and Players:GetPlayerFromCharacter(char)
+                if pl and char:FindFirstChild("Humanoid") then
+
+                    lastCheckpoint[pl] = cp.CFrame + Vector3.new(0, 3, 0)
+                end
+            end)
+        end
+    end
+end
+
+
+platform.Touched:Connect(function(hit)
+
+    local char = hit:FindFirstAncestorOfClass("Model")
+    local pl   = char and Players:GetPlayerFromCharacter(char)
+    if not pl or not char:FindFirstChild("Humanoid") then
+        return
+    end
+
+    if debounce[pl] then
+        return
+    end
+    debounce[pl] = true
+
+    local cpCFrame = lastCheckpoint[pl]
+    if cpCFrame then
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame = cpCFrame
+        end
+    end
+
+    delay(1, function()
+        debounce[pl] = nil
+    end)
+end)
+
+end)
 
 local LB3Section = MainTab:NewSection("Pass The Obby")
 
@@ -250,11 +333,100 @@ spawn(function()
 end)
 end)
 
+local LB4Section = MainTab:NewSection("Fastest Pass The Obby")
+
+LB4Section:NewButton("Pass", "Fastest Pass All Obby", function()
+
+for i = 1, 50 do
+    game:GetService("Players").LocalPlayer.Character:PivotTo(CFrame.new(87, 2, -26))
+    task.wait(0.01)
+end
+
+    local waypoints = {
+    CFrame.new(87, 2, -26),
+    CFrame.new(84, 2, -239),
+    CFrame.new(87, 148, -253),
+    CFrame.new(87, 155, -266),
+    CFrame.new(78, 155, -387),
+    CFrame.new(76, 96, -392),
+    CFrame.new(78, 155, -387),
+    CFrame.new(71, 155, -467),
+    CFrame.new(71, 96, -470),
+    CFrame.new(69, 104, -485),
+    CFrame.new(66, 96, -513),
+    CFrame.new(64, 96, -539),
+    CFrame.new(69, 96, -544),
+    CFrame.new(68, 96, -561),
+    CFrame.new(61, 96, -565),
+    CFrame.new(59, 96, -595),
+    CFrame.new(59, 121, -595),
+    CFrame.new(55, 105, -634),
+    CFrame.new(31, 105, -720),
+    CFrame.new(27, 105, -764),
+    CFrame.new(41, 105, -780),
+    CFrame.new(33, 105, -873),
+    CFrame.new(39, 121, -905),
+    CFrame.new(33, 121, -967),
+    CFrame.new(30, 132, -1012),
+    CFrame.new(25, 137, -1069),
+    CFrame.new(25, 224, -1069),
+    CFrame.new(8, 213, -1121),
+    CFrame.new(8, 241, -1121),
+    CFrame.new(3, 188, -1194),
+    CFrame.new(3, 193, -1215),
+    CFrame.new(0, 189, -1238),
+    CFrame.new(-1, 195, -1268),
+    CFrame.new(-4, 190, -1294),
+    CFrame.new(-4, 215, -1294),
+    CFrame.new(-13, 215, -1387),
+    CFrame.new(-12, 190, -1390),
+    CFrame.new(-15, 190, -1422),
+    CFrame.new(-21, 190, -1424),
+    CFrame.new(-23, 190, -1441),
+    CFrame.new(-18, 191, -1446),
+    CFrame.new(-20, 191, -1474),
+    CFrame.new(-26, 223, -1530),
+    CFrame.new(-26, 192, -1532),
+    CFrame.new(-33, 335, -1549),
+    CFrame.new(-32, 342, -1544),
+    CFrame.new(-55, 342, -1676),
+    CFrame.new(-59, 283, -1671),
+    CFrame.new(-82, 283, -1813),
+    CFrame.new(-94, 283, -1910),
+    CFrame.new(-96, 347, -1930),
+    CFrame.new(-100, 347, -1954),
+    CFrame.new(-109, 299, -2043),
+    CFrame.new(-112, 265, -2086),
+    CFrame.new(-112, 291, -2086),
+    CFrame.new(-121, 291, -2142),
+    CFrame.new(-121, 265, -2143),
+    CFrame.new(-121, 291, -2142),
+    CFrame.new(-136, 291, -2235),
+    CFrame.new(-138, 265, -2247),
+    CFrame.new(-180, 266, -2364),
+    CFrame.new(-191, 266, -2426),
+    CFrame.new(-180, 265, -2440),
+    CFrame.new(-183, 265, -2453),
+    CFrame.new(-167, 264, -2457),
+    CFrame.new(-170, 265, -2473),
+    CFrame.new(-186, 265, -2471),
+    CFrame.new(-193, 265, -2519),
+    CFrame.new(-211, 265, -2672),
+    CFrame.new(-207, 265, -2693),
+    CFrame.new(-215, 265, -2737),
+    CFrame.new(-236, 266, -2787),
+}
+
+for _, targetCFrame in ipairs(waypoints) do
+    hrp.CFrame = targetCFrame
+    task.wait(0.2)
+end
+end)
+
 --credits
-local CreditsSection = CreditsTab:NewSection("Credits:")
-CreditsSection:NewLabel("Coder - prnxz69")
-CreditsSection:NewLabel("https://discord.gg/wQRNcsMv8q")
-CreditsSection:NewLabel("https://projectdropzov.xyz (Not working for now)")
+local CreditsSection = CreditsTab:NewSection("Coder - prnxz69 (Русский)")
+CreditsSection:NewLabel("")
+CreditsSection:NewLabel("")
 
 --player
 local function enableNoclip()
@@ -317,6 +489,118 @@ WalkspeedSection:NewSlider(
     end
 )
 
+local FlySection = PlayerTab:NewSection("Fly")
+
+local function isTypingInChat()
+    return UserInput:GetFocusedTextBox() ~= nil
+end
+
+local flySpeed = 50
+
+local function enableFly()
+    if flyEnabled then return end
+    flyEnabled = true
+
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bodyVelocity.P = 1250
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Parent = hrp
+
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    bodyGyro.P = 3000
+    bodyGyro.CFrame = hrp.CFrame
+    bodyGyro.Parent = hrp
+
+    flightConnection = RunService.RenderStepped:Connect(function()
+        
+        if isTypingInChat() then
+            bodyVelocity.Velocity = Vector3.new()
+            return
+        end
+        
+        local camCF = workspace.CurrentCamera.CFrame
+        local dir   = Vector3.new()
+
+        if UserInput:IsKeyDown(Enum.KeyCode.W) then
+            dir += camCF.LookVector
+        end
+        if UserInput:IsKeyDown(Enum.KeyCode.S) then
+            dir -= camCF.LookVector
+        end
+        if UserInput:IsKeyDown(Enum.KeyCode.A) then
+            dir -= camCF.RightVector
+        end
+        if UserInput:IsKeyDown(Enum.KeyCode.D) then
+            dir += camCF.RightVector
+        end
+        if UserInput:IsKeyDown(Enum.KeyCode.Space) then
+            dir += Vector3.new(0, 1, 0)
+        end
+        if UserInput:IsKeyDown(Enum.KeyCode.LeftShift) then
+            dir -= Vector3.new(0, 1, 0)
+        end
+
+        if dir.Magnitude > 0 then
+            bodyVelocity.Velocity = dir.Unit * flySpeed
+        else
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        end
+
+        bodyGyro.CFrame = CFrame.new(hrp.Position, hrp.Position + camCF.LookVector)
+    end)
+end
+
+local function disableFly()
+    if not flyEnabled then return end
+    flyEnabled = false
+
+    if flightConnection then
+        flightConnection:Disconnect()
+        flightConnection = nil
+    end
+    if bodyVelocity then
+        bodyVelocity:Destroy()
+        bodyVelocity = nil
+    end
+    if bodyGyro then
+        bodyGyro:Destroy()
+        bodyGyro = nil
+    end
+end
+
+FlySection:NewToggle("Enable Fly", "Enable Or Disable Flight", function(state)
+    if state then
+        enableFly()
+    else
+        disableFly()
+    end
+end)
+
+FlySection:NewKeybind(
+    "Enable Fly Using The Keybind",
+    "Set Your Keybind For Fly",
+    Enum.KeyCode.F,
+    function()
+        if flyEnabled then
+            disableFly()
+        else
+            enableFly()
+        end
+    end
+)
+
+FlySection:NewSlider(
+    "Fly Speed",
+    "Adjusting The Flight Speed",
+    1000,    -- max
+    50,     -- min
+    function(value)
+        flySpeed = value
+    end
+)
+
 --teleports
 
 local TeleportSection = TeleportsTab:NewSection("Teleports")
@@ -330,4 +614,35 @@ end)
 
 TeleportSection:NewButton("Point 3", "Teleport To Point 3", function()
     game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(87, 148, -255)
+end)
+
+--settings
+
+local SettingsSection = SettingsTab:NewSection("Toggle Ui Keybind")
+SettingsSection:NewKeybind("Toogle Ui", "Set Keybind For Toogle Ui", Enum.KeyCode.P, function()
+	Library:ToggleUI()
+end)
+
+--scripts
+
+local ScriptsSection = ScriptsTab:NewSection("Scripts")
+
+ScriptsSection:NewButton("Infinite Yield", "Execute This Script", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+end)
+
+ScriptsSection:NewButton("System Broken", "Execute This Script", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/script"))()
+end)
+
+ScriptsSection:NewButton("Fly Gui", "Execute This Script", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+end)
+
+ScriptsSection:NewButton("R6 & R15 Emotes", "Execute This Script", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Prnx69/DMO-Breaker-Ladder/refs/heads/main/r6%20%20r15%20emotes"))()
+end)
+
+ScriptsSection:NewButton("Only R15 Emotes", "Execute This Script", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Gazer-Ha/Free-emote/refs/heads/main/Delta%20mad%20stuffs"))()
 end)
