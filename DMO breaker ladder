@@ -1,17 +1,19 @@
 -- Services
 local Players      = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-
+local Workspace    = game:GetService("Workspace")
+local RunService   = game:GetService("RunService")
 -- Player References
 local player    = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp       = character:WaitForChild("HumanoidRootPart")
+local function update_walk_speed(ws) plr.Character.Humanoid.WalkSpeed = ws end
 
 --loading ui
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 
-local Window = Library.CreateLib("Breaker Ladder - DMO", "DarkTheme")
+local Window = Library.CreateLib("Ladder Destroyer - DMO", "DarkTheme")
 
 --loading tabs
 
@@ -19,13 +21,13 @@ local MainTab = Window:NewTab("Main") --1
 
 local PlayerTab = Window:NewTab("Player") --2
 
-local MiscTab = Window:NewTab("Teleports") --3
+local TeleportsTab = Window:NewTab("Teleports") --3
 
-local OtherTab = Window:NewTab("Misc") --4
+local MiscTab = Window:NewTab("Misc") --4
 
-local CreditsTab = Window:NewTab("Settings UI & Credits") --5
+local CreditsTab = Window:NewTab("Credits") --5
 
---loading section 1
+--main
 
 local speed   = 53               -- studs per second
 local running = false            -- loop flag
@@ -108,6 +110,7 @@ local waypoints = {
 }
 
 local function runPath()
+    -- instant teleport to starting point
     hrp.CFrame = CFrame.new(waypoints[1])
 
     while running do
@@ -144,6 +147,11 @@ local LB3Section = MainTab:NewSection("Pass The Obby")
 
 LB3Section:NewButton("Pass", "Pass All Obby", function()
     local speed = 60
+
+for i = 1, 50 do
+    game:GetService("Players").LocalPlayer.Character:PivotTo(CFrame.new(87, 2, -26))
+    task.wait(0.01)
+end
 
 local waypoints = {
     Vector3.new(87, 2, -26),
@@ -240,4 +248,86 @@ spawn(function()
         tweenTo(targetPos)
     end
 end)
+end)
+
+--credits
+local CreditsSection = CreditsTab:NewSection("Credits:")
+CreditsSection:NewLabel("Coder - prnxz69")
+CreditsSection:NewLabel("https://discord.gg/wQRNcsMv8q")
+CreditsSection:NewLabel("https://projectdropzov.xyz (Not working for now)")
+
+--player
+local function enableNoclip()
+    if noclipActive then return end
+    noclipActive = true
+
+    steppedConn = RunService.Stepped:Connect(function()
+        local character = Workspace:FindFirstChild(player.Name)
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+local function disableNoclip()
+    if not noclipActive then return end
+    noclipActive = false
+
+    if steppedConn then
+        steppedConn:Disconnect()
+        steppedConn = nil
+    end
+
+    local character = Workspace:FindFirstChild(player.Name)
+    if character then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+local NoclipSection = PlayerTab:NewSection("Noclip")
+NoclipSection:NewToggle("Enable/Disable", "Enables Or Disables Noclip Function", function(state)
+    if state then
+        enableNoclip()
+    else
+        disableNoclip()
+    end
+end)
+
+local WalkspeedSection = PlayerTab:NewSection("Player Walkspeed")
+WalkspeedSection:NewSlider(
+    "Set WalkSpeed",
+    "Setting Walkspeed (Standarted Speed - 16)",
+    200,
+    5,
+    function(speed)
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = speed
+        end
+    end
+)
+
+--teleports
+
+local TeleportSection = TeleportsTab:NewSection("Teleports")
+TeleportSection:NewButton("Point 1", "Teleport To Point 1", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(93, 4, -25)
+end)
+
+TeleportSection:NewButton("Point 2", "Teleport To Point 2", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(93, 4, -236)
+end)
+
+TeleportSection:NewButton("Point 3", "Teleport To Point 3", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(87, 148, -255)
 end)
