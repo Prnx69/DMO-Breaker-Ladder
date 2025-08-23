@@ -1,14 +1,24 @@
 -- Services
+print("Ladder Destroyer ON TOP! Use It")
 print("Loading Services...")
 
 local Players      = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local Workspace    = game:GetService("Workspace")
 local RunService   = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local UserInput   = game:GetService("UserInputService")
--- Player References
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local checkpointFolder = workspace:WaitForChild("Checkpoints")
 
+--Storage
+print("Loading Storage...")
+
+local lastCheckpoint
+local started = false
+
+-- Player References
 print("Loading Player References...")
+
 local player    = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp       = character:WaitForChild("HumanoidRootPart")
@@ -20,7 +30,7 @@ task.wait(1)
 
 print("Loading Ui...")
 
-task.wait(2)
+task.wait(1.2)
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 
@@ -157,84 +167,35 @@ running = state
     end
 )
 
-local LB5Section = MainTab:NewSection("Create Anti-Fall Platform")
+local LB5Section = MainTab:NewSection("Create Anti-Fall")
+LB5Section:NewButton("Create", "Create Anti-Fall", function()
 
-LB5Section:NewButton("Create", "Create Anti-Fall Platform", function()
-    
-    local platform = Instance.new("Part")
-platform.Name         = "KillZone"
-platform.Size         = Vector3.new(10000, 5, 10000)
-platform.CFrame       = CFrame.new(0, -20, 0)
-platform.Anchored     = true
-platform.CanCollide   = true
-platform.Transparency = 1
-platform.Parent       = Workspace
+local platform = Instance.new("Part")
 
-local lastCheckpoint = {}     
-local debounce        = {}     
+platform.Parent = game.Workspace
 
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(char)
-        local hrp = char:WaitForChild("HumanoidRootPart")
-        lastCheckpoint[player] = hrp.CFrame
-    end)
-end)
+platform.Size = Vector3.new(10000, 1, 10000)
 
+platform.CFrame = CFrame.new(0, 0, 0)
 
-local cpsFolder = Workspace:FindFirstChild("Checkpoints")
-if cpsFolder then
-    for _, cp in ipairs(cpsFolder:GetChildren()) do
-        if cp:IsA("BasePart") then
-            cp.Touched:Connect(function(hit)
-                local char = hit:FindFirstAncestorOfClass("Model")
-                local pl   = char and Players:GetPlayerFromCharacter(char)
-                if pl and char:FindFirstChild("Humanoid") then
+platform.Anchored = true
+platform.CanCollide = true
 
-                    lastCheckpoint[pl] = cp.CFrame + Vector3.new(0, 3, 0)
-                end
-            end)
-        end
-    end
-end
-
-
-platform.Touched:Connect(function(hit)
-
-    local char = hit:FindFirstAncestorOfClass("Model")
-    local pl   = char and Players:GetPlayerFromCharacter(char)
-    if not pl or not char:FindFirstChild("Humanoid") then
-        return
-    end
-
-    if debounce[pl] then
-        return
-    end
-    debounce[pl] = true
-
-    local cpCFrame = lastCheckpoint[pl]
-    if cpCFrame then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = cpCFrame
-        end
-    end
-
-    delay(1, function()
-        debounce[pl] = nil
-    end)
-end)
+local transparency = 0.7
+platform.Transparency = transparency
 
 end)
 
 local LB3Section = MainTab:NewSection("Pass The Obby")
 
 LB3Section:NewButton("Pass", "Pass All Obby", function()
-    local speed = 60
-
-for i = 1, 50 do
+    
+    for i = 1, 50 do
     game:GetService("Players").LocalPlayer.Character:PivotTo(CFrame.new(87, 2, -26))
     task.wait(0.01)
 end
+    
+    local speed = 60
 
 local waypoints = {
     Vector3.new(87, 2, -26),
@@ -337,12 +298,8 @@ local LB4Section = MainTab:NewSection("Fastest Pass The Obby")
 
 LB4Section:NewButton("Pass", "Fastest Pass All Obby", function()
 
-for i = 1, 50 do
-    game:GetService("Players").LocalPlayer.Character:PivotTo(CFrame.new(87, 2, -26))
-    task.wait(0.01)
-end
-
     local waypoints = {
+    CFrame.new(87, 5, -26),
     CFrame.new(87, 2, -26),
     CFrame.new(84, 2, -239),
     CFrame.new(87, 148, -253),
@@ -491,11 +448,15 @@ WalkspeedSection:NewSlider(
 
 local FlySection = PlayerTab:NewSection("Fly")
 
+local flyEnabled      = false
+local flySpeed        = 50
+local bodyVelocity
+local bodyGyro
+local flightConnection
+
 local function isTypingInChat()
     return UserInput:GetFocusedTextBox() ~= nil
 end
-
-local flySpeed = 50
 
 local function enableFly()
     if flyEnabled then return end
@@ -504,7 +465,7 @@ local function enableFly()
     bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
     bodyVelocity.P = 1250
-    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Velocity = Vector3.zero
     bodyVelocity.Parent = hrp
 
     bodyGyro = Instance.new("BodyGyro")
@@ -514,38 +475,25 @@ local function enableFly()
     bodyGyro.Parent = hrp
 
     flightConnection = RunService.RenderStepped:Connect(function()
-        
         if isTypingInChat() then
-            bodyVelocity.Velocity = Vector3.new()
+            bodyVelocity.Velocity = Vector3.zero
             return
         end
-        
-        local camCF = workspace.CurrentCamera.CFrame
-        local dir   = Vector3.new()
 
-        if UserInput:IsKeyDown(Enum.KeyCode.W) then
-            dir += camCF.LookVector
-        end
-        if UserInput:IsKeyDown(Enum.KeyCode.S) then
-            dir -= camCF.LookVector
-        end
-        if UserInput:IsKeyDown(Enum.KeyCode.A) then
-            dir -= camCF.RightVector
-        end
-        if UserInput:IsKeyDown(Enum.KeyCode.D) then
-            dir += camCF.RightVector
-        end
-        if UserInput:IsKeyDown(Enum.KeyCode.Space) then
-            dir += Vector3.new(0, 1, 0)
-        end
-        if UserInput:IsKeyDown(Enum.KeyCode.LeftShift) then
-            dir -= Vector3.new(0, 1, 0)
-        end
+        local camCF = workspace.CurrentCamera.CFrame
+        local dir   = Vector3.zero
+
+        if UserInput:IsKeyDown(Enum.KeyCode.W) then dir += camCF.LookVector end
+        if UserInput:IsKeyDown(Enum.KeyCode.S) then dir -= camCF.LookVector end
+        if UserInput:IsKeyDown(Enum.KeyCode.A) then dir -= camCF.RightVector end
+        if UserInput:IsKeyDown(Enum.KeyCode.D) then dir += camCF.RightVector end
+        if UserInput:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0, 1, 0) end
+        if UserInput:IsKeyDown(Enum.KeyCode.LeftShift) then dir -= Vector3.new(0, 1, 0) end
 
         if dir.Magnitude > 0 then
             bodyVelocity.Velocity = dir.Unit * flySpeed
         else
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.Velocity = Vector3.zero
         end
 
         bodyGyro.CFrame = CFrame.new(hrp.Position, hrp.Position + camCF.LookVector)
@@ -570,6 +518,17 @@ local function disableFly()
     end
 end
 
+player.CharacterRemoving:Connect(function()
+    if flyEnabled then
+        disableFly()
+    end
+end)
+
+player.CharacterAdded:Connect(function(char)
+    character = char
+    hrp = char:WaitForChild("HumanoidRootPart")
+end)
+
 FlySection:NewToggle("Enable Fly", "Enable Or Disable Flight", function(state)
     if state then
         enableFly()
@@ -578,24 +537,15 @@ FlySection:NewToggle("Enable Fly", "Enable Or Disable Flight", function(state)
     end
 end)
 
-FlySection:NewKeybind(
-    "Enable Fly Using The Keybind",
-    "Set Your Keybind For Fly",
+FlySection:NewKeybind("Enable Fly Using The Keybind", "Set Your Keybind For Fly",
     Enum.KeyCode.F,
     function()
-        if flyEnabled then
-            disableFly()
-        else
-            enableFly()
-        end
+        if flyEnabled then disableFly() else enableFly() end
     end
 )
 
-FlySection:NewSlider(
-    "Fly Speed",
-    "Adjusting The Flight Speed",
-    1000,    -- max
-    50,     -- min
+FlySection:NewSlider("Fly Speed", "Adjusting The Flight Speed",
+    1000, 50,
     function(value)
         flySpeed = value
     end
@@ -605,15 +555,15 @@ FlySection:NewSlider(
 
 local TeleportSection = TeleportsTab:NewSection("Teleports")
 TeleportSection:NewButton("Point 1", "Teleport To Point 1", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(93, 4, -25)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(93, 10, -25)
 end)
 
 TeleportSection:NewButton("Point 2", "Teleport To Point 2", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(93, 4, -236)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(93, 10, -236)
 end)
 
 TeleportSection:NewButton("Point 3", "Teleport To Point 3", function()
-    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(87, 148, -255)
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(87, 154, -255)
 end)
 
 --settings
