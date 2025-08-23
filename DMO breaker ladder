@@ -79,8 +79,8 @@ local function runPath()
     end
 end
 
-local LB1Section = MainTab:NewSection("Ladder Breaker From Below 1")
-LB1Section:NewToggle("Enabled", "Breaking the lower/upper ladder", function(state)
+local LB1Section = MainTab:NewSection("Ladder Breaker From Below")
+LB1Section:NewToggle("Enable/Disable", "Breaking the lower/upper ladder", function(state)
 running = state
         if state then
             spawn(runPath)
@@ -90,7 +90,7 @@ running = state
 
 --section 2
 
-local LB2Section = MainTab:NewSection("Ladder Breaker From Above 2")
+local LB2Section = MainTab:NewSection("Ladder Breaker From Above")
 
 local speed   = 53               -- studs per second
 local running = false            -- loop flag
@@ -135,7 +135,7 @@ local function runPath()
     end
 end
 
-LB2Section:NewToggle("Enabled", "Breaking the lower/upper ladder", function(state)
+LB2Section:NewToggle("Enable/Disable", "Breaking the lower/upper ladder", function(state)
 running = state
         if state then
             spawn(runPath)
