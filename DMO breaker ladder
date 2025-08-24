@@ -1,4 +1,4 @@
 --this script is in the new repository
 --script: loadstring(game:HttpGet("https://raw.githubusercontent.com/Prnx69/Ladder-Destroyer/refs/heads/main/Ladder%20Destroyer"))()
 
-game:GetService("Players").LocalPlayer:Kick("Изменён loadstring скрипта! Перейдите по ссылке старого loadstring и скопируй его, либо на scriptblox")
+game:GetService("Players").LocalPlayer:Kick("Изменён loadstring скрипта! Перейдите по ссылке старого loadstring и скопируйте его, либо на scriptblox")
